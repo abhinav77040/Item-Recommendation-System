@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShopSmart AI - AI E-commerce Recommendations</title>
+    <script src="assets/js/config.js"></script>
+    <script>(function(){try{var ls=localStorage.getItem('theme');var prefersDark=window.matchMedia('(prefers-color-scheme: dark)').matches;if(ls==='dark'||(!ls&&prefersDark)){document.documentElement.classList.add('dark');}else{document.documentElement.classList.remove('dark');}}catch(e){}})();</script>
+    <script src="https://cdn.tailwindcss.com?plugins=line-clamp"></script>
+    <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 dark:text-slate-200 text-slate-800 antialiased">
+
+    <!-- Chosen Palette: Cool & Modern (Blue primary, Slate/Gray neutrals) -->
+    <!-- Application Structure Plan: The application is structured as a hash-based single-page application (SPA). A JavaScript-based router listens for hash changes (e.g., #home, #categories) to dynamically show and hide content sections ('pages'). This provides a fast, app-like experience without page reloads, as requested. Key interactions center on product discovery (filtering, browsing) and personalization (saving items). The AI recommendation is simulated based on user 'saved' items, feeding both the 'Recommended' page and the 'Dynamic Pop-up' to create a personalized feel. This structure directly implements the user's specification for a modern e-commerce site. -->
+    <!-- Visualization & Content Choices: 
+        - Featured Products Carousel: Goal: Showcase key products. Method: Custom JS/CSS horizontal slider. Interaction: Autoplay. Justification: Fulfills 'Featured Products Carousel' requirement.
+        - Product/Category Grids: Goal: Display products/categories. Method: Responsive Tailwind CSS grid. Interaction: Hover animations (zoom/lift), click to navigate/save. Justification: Standard, user-friendly layout for e-commerce.
+        - AI Recommendation (Simulation): Goal: Simulate AI personalization. Method: JS logic that prioritizes products from categories the user has 'saved'. Interaction: Populates 'Recommended' page and 'Dynamic Pop-up'. Justification: Mimics AI behavior as requested.
+        - Dynamic Pop-up: Goal: Continuous recommendations. Method: Fixed-position div animated with JS `setInterval` (5s on, 5s off). Interaction: Auto-cycles products. Justification: Directly implements the 'Dynamic Recommendation Pop-up Feature'.
+        - Modals: Goal: Authentication. Method: Full-screen overlay with centered card. Interaction: Show/hide on click. Justification: Standard UI for login/signup.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <!-- Header -->
+    <header id="main-header" class="sticky top-0 z-50 w-full transition-all duration-300 shadow-sm bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg">
+        <nav class="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex justify-between items-center">
+                <a href="#home" class="text-2xl font-bold gradient-text">
+                    ShopSmart AI
+                </a>
+                <div class="hidden md:flex items-center space-x-2">
+                    <a href="#home" class="nav-link px-3 py-2 rounded-md text-sm font-medium dark:text-slate-200 text-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">Home</a>
+                    <a href="#categories" class="nav-link px-3 py-2 rounded-md text-sm font-medium dark:text-slate-200 text-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">Categories</a>
+                    <a href="#recommended" class="nav-link px-3 py-2 rounded-md text-sm font-medium dark:text-slate-200 text-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">Recommended</a>
+                    <a href="#saved" class="nav-link px-3 py-2 rounded-md text-sm font-medium dark:text-slate-200 text-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">Saved Items</a>
+                    <a href="#about" class="nav-link px-3 py-2 rounded-md text-sm font-medium dark:text-slate-200 text-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">About</a>
+                    <a href="#contact" class="nav-link px-3 py-2 rounded-md text-sm font-medium dark:text-slate-200 text-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">Contact</a>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button id="dark-mode-toggle" class="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors" aria-label="Toggle dark mode">
+                        <span class="dark:hidden">🌙</span>
+                        <span class="hidden dark:inline">☀️</span>
+                    </button>
+                    <div id="auth-container" class="flex items-center space-x-2">
+                        <button id="login-btn" class="px-4 py-2 rounded-lg text-sm font-medium btn-primary-gradient text-white shadow-sm hover:shadow-lg">Login</button>
+                        <button id="signup-btn" class="px-4 py-2 rounded-lg text-sm font-medium bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors shadow-sm hover:shadow-lg">Sign Up</button>
+                    </div>
+                    <div id="user-container" class="hidden items-center space-x-2">
+                        <span id="username-display" class="text-sm font-medium">Welcome, User</span>
+                        <button id="logout-btn" class="px-3 py-2 rounded-md text-sm font-medium bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors">Logout</button>
+                    </div>
+                    <button id="mobile-menu-btn" class="md:hidden p-2 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700">
+                        <span class="block w-5 h-0.5 bg-slate-800 dark:bg-slate-200"></span>
+                        <span class="block w-5 h-0.5 bg-slate-800 dark:bg-slate-200 mt-1"></span>
+                        <span class="block w-5 h-0.5 bg-slate-800 dark:bg-slate-200 mt-1"></span>
+                    </button>
+                </div>
+            </div>
+            <!-- Mobile Menu -->
+            <div id="mobile-menu" class="hidden md:hidden mt-2 space-y-1">
+                <a href="#home" class="nav-link block px-3 py-2 rounded-md text-base font-medium dark:text-slate-200 text-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">Home</a>
+                <a href="#categories" class="nav-link block px-3 py-2 rounded-md text-base font-medium dark:text-slate-200 text-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">Categories</a>
+                <a href="#recommended" class="nav-link block px-3 py-2 rounded-md text-base font-medium dark:text-slate-200 text-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">Recommended</a>
+                <a href="#saved" class="nav-link block px-3 py-2 rounded-md text-base font-medium dark:text-slate-200 text-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">Saved Items</a>
+                <a href="#about" class="nav-link block px-3 py-2 rounded-md text-base font-medium dark:text-slate-200 text-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">About</a>
+                <a href="#contact" class="nav-link block px-3 py-2 rounded-md text-base font-medium dark:text-slate-200 text-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">Contact</a>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Save Notification -->
+    <div id="save-notification" class="fixed top-20 right-4 z-[60] p-4 rounded-lg shadow-lg bg-green-500 text-white font-semibold">
+        Product saved successfully!
+    </div>
+
+    <!-- AI Recommendation Pop-up -->
+    <div id="recommendation-popup" class="fixed top-24 right-4 z-[60] w-64 p-3 rounded-lg shadow-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+        <div class="flex items-center space-x-3">
+            <img id="popup-img" src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%2764%27%20height%3D%2764%27%3E%3Crect%20width%3D%27100%25%27%20height%3D%27100%25%27%20fill%3D%27%23EBF4FF%27/%3E%3Ctext%20x%3D%2750%25%27%20y%3D%2750%25%27%20dominant-baseline%3D%27middle%27%20text-anchor%3D%27middle%27%20font-family%3D%27Inter%2C%20Arial%27%20font-size%3D%2712%27%20fill%3D%27%231F2937%27%3EProduct%3C/text%3E%3C/svg%3E" alt="Recommended Product" class="w-16 h-16 rounded-md object-cover">
+            <div>
+                <h4 id="popup-title" class="text-sm font-semibold truncate">Product Name</h4>
+                <a id="popup-link" href="#" class="mt-1 inline-block px-3 py-1 text-xs rounded-full bg-primary text-white hover:bg-primary-dark transition-colors">View Product</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-[calc(100vh-200px)]">
+        
+        <!-- Home Page -->
+        <section id="page-home" class="page-content animate-fade-in space-y-16">
+            <!-- Hero Banner -->
+            <div class="p-8 md:p-12 bg-gradient-to-r from-indigo-100 to-violet-100 dark:from-slate-800 dark:to-slate-900 rounded-2xl fade-up-on-scroll section-hidden overflow-hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2 items-center gap-8">
+                    <div class="text-center md:text-left">
+                        <h1 class="text-4xl md:text-6xl font-extrabold text-slate-900 dark:text-white mb-4">
+                            Discover Products
+                        </h1>
+                        <p class="text-4xl md:text-6xl font-extrabold gradient-text mb-6">You’ll Love</p>
+                        <p class="text-lg md:text-xl text-slate-600 dark:text-slate-300">
+                            Our AI curates a shopping experience just for you.
+                        </p>
+                    </div>
+                    <div class="hidden md:block">
+                        <div class="w-full h-64 bg-gradient-to-r from-indigo-300 to-violet-300 dark:from-indigo-500 dark:to-violet-500 rounded-2xl flex items-center justify-center">
+                            <span class="text-4xl" aria-label="AI Brain icon">🧠</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="p-6 bg-white dark:bg-slate-800 rounded-2xl shadow-md fade-up-on-scroll section-hidden">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <input type="text" id="search-input" placeholder="Search for products..." class="md:col-span-2 w-full p-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <select id="filter-category" class="w-full p-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="">All Categories</option>
+                    </select>
+                    <select id="filter-rating" class="w-full p-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="">Any Rating</option>
+                        <option value="4">4 Stars & Up</option>
+                        <option value="3">3 Stars & Up</option>
+                        <option value="2">2 Stars & Up</option>
+                        <option value="1">1 Star & Up</option>
+                    </select>
+                </div>
+                <button id="search-btn" class="mt-4 w-full md:w-auto px-6 py-3 btn-primary-gradient text-white font-semibold rounded-lg shadow-md hover:shadow-lg">
+                    Search
+                </button>
+            </div>
+
+            <!-- Featured Products Carousel -->
+            <div class="space-y-6 fade-up-on-scroll section-hidden">
+                <h2 class="text-3xl font-bold text-center">Featured Products</h2>
+                <div class="relative w-full overflow-hidden rounded-2xl">
+                    <div id="featured-carousel" class="flex">
+                    </div>
+                </div>
+            </div>
+
+            <!-- All Products Section -->
+            <div class="space-y-6 slide-in-on-scroll section-hidden">
+                <h2 class="text-3xl font-bold text-center">All Products</h2>
+                <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                </div>
+                <div class="text-center">
+                    <button id="load-more-btn" class="px-6 py-3 bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-semibold rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors shadow-sm hover:shadow-lg">Load More</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Categories Page -->
+        <section id="page-categories" class="page-content animate-fade-in hidden">
+            <h1 class="text-4xl font-bold text-center mb-12">Product Categories</h1>
+            <div id="category-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+            </div>
+        </section>
+
+        <!-- Product List Page (for category) -->
+        <section id="page-products-list" class="page-content animate-fade-in hidden">
+            <h1 id="product-list-title" class="text-4xl font-bold text-center mb-12">Products</h1>
+            <div id="product-list-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            </div>
+        </section>
+
+        <!-- Recommended Page -->
+        <section id="page-recommended" class="page-content animate-fade-in hidden">
+            <h1 class="text-4xl font-bold text-center mb-12">Recommended For You</h1>
+            <div id="recommended-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            </div>
+            <p id="no-recommendations" class="text-center text-slate-500 text-lg hidden">Save some items to get personalized recommendations!</p>
+        </section>
+
+        <!-- Saved Items Page -->
+        <section id="page-saved" class="page-content animate-fade-in hidden">
+            <h1 class="text-4xl font-bold text-center mb-12">Your Saved Items</h1>
+            <div id="saved-items-container" class="space-y-8">
+            </div>
+            <p id="no-saved-items" class="text-center text-slate-500 text-lg">You haven't saved any items yet.</p>
+        </section>
+
+        <!-- About Page -->
+        <section id="page-about" class="page-content animate-fade-in hidden">
+            <h1 class="text-4xl font-bold text-center mb-8">About ShopSmart AI</h1>
+            <div class="max-w-3xl mx-auto p-8 bg-white dark:bg-slate-800 rounded-2xl shadow-lg space-y-4">
+                <p>Welcome to ShopSmart AI, your personalized e-commerce experience. Our mission is to revolutionize how you shop online by harnessing the power of artificial intelligence.</p>
+                <p>Our advanced recommendation engine analyzes your browsing behavior, saved items, and preferences to suggest products you'll truly love. No more endless scrolling—just a curated, smart, and seamless shopping journey.</p>
+                <p>This mini-project demonstrates a modern, responsive e-commerce website built with smooth animations, dynamic product fetching, and a simulated AI-powered recommendation system.</p>
+            </div>
+        </section>
+
+        <!-- Contact Page -->
+        <section id="page-contact" class="page-content animate-fade-in hidden">
+            <h1 class="text-4xl font-bold text-center mb-8">Get In Touch</h1>
+            <form class="max-w-2xl mx-auto p-8 bg-white dark:bg-slate-800 rounded-2xl shadow-lg space-y-4">
+                <div>
+                    <label for="name" class="block text-sm font-medium mb-1">Name</label>
+                    <input type="text" id="name" class="w-full p-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label for="email" class="block text-sm font-medium mb-1">Email</label>
+                    <input type="email" id="email" class="w-full p-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label for="message" class="block text-sm font-medium mb-1">Message</label>
+                    <textarea id="message" rows="5" class="w-full p-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                </div>
+                <button type="submit" class="w-full px-6 py-3 btn-primary-gradient text-white font-semibold rounded-lg shadow-md hover:shadow-lg">Send Message</button>
+            </form>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-200 dark:bg-slate-800 mt-16 py-12">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div class="flex justify-center space-x-6 mb-6">
+                <a href="#" class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-colors">Privacy Policy</a>
+                <a href="#" class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-colors">Terms of Service</a>
+                <a href="#" class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-colors">Help</a>
+                <a href="#about" class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-colors">About Us</a>
+            </div>
+            <div class="flex justify-center space-x-6 mb-6">
+                <a href="#" class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-colors text-xl font-bold">X</a>
+                <a href="#" class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-colors text-xl font-bold">G</a>
+                <a href="#" class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-colors text-xl font-bold">GH</a>
+            </div>
+            <p class="text-slate-500 dark:text-slate-400 text-sm">© <span id="footer-year">2024</span> ShopSmart AI. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Login Modal -->
+    <div id="login-modal" class="fixed inset-0 z-[70] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 hidden animate-fade-in">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md p-8 relative">
+            <button class="modal-close-btn absolute top-4 right-4 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 text-2xl">&times;</button>
+            <h2 class="text-2xl font-bold text-center mb-6">Login</h2>
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label for="login-username" class="block text-sm font-medium mb-1">Username</label>
+                    <input type="text" id="login-username" class="w-full p-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+                </div>
+                <div>
+                    <label for="login-password" class="block text-sm font-medium mb-1">Password</label>
+                    <input type="password" id="login-password" class="w-full p-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+                </div>
+                <button type="submit" class="w-full px-6 py-3 btn-primary-gradient text-white font-semibold rounded-lg shadow-md hover:shadow-lg">Login</button>
+            </form>
+            <div class="text-center my-4 text-slate-500 text-sm">OR</div>
+            <div class="space-y-3">
+                <button class="w-full p-3 rounded-lg border border-slate-300 dark:border-slate-600 flex items-center justify-center space-x-2 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                    <span class="font-bold text-blue-600">G</span> <span>Sign in with Google</span>
+                </button>
+                <button class="w-full p-3 rounded-lg border border-slate-300 dark:border-slate-600 flex items-center justify-center space-x-2 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                    <span class="font-bold">X</span> <span>Sign in with X</span>
+                </button>
+                <button class="w-full p-3 rounded-lg border border-slate-300 dark:border-slate-600 flex items-center justify-center space-x-2 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                    <span class="font-bold text-slate-500">GH</span> <span>Sign in with GitHub</span>
+                </button>
+            </div>
+            <p class="text-center mt-4 text-sm">
+                Don't have an account? <a href="#" id="show-signup" class="text-primary font-medium">Sign Up</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- Sign Up Modal -->
+    <div id="signup-modal" class="fixed inset-0 z-[70] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 hidden animate-fade-in">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md p-8 relative">
+            <button class="modal-close-btn absolute top-4 right-4 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 text-2xl">&times;</button>
+            <h2 class="text-2xl font-bold text-center mb-6">Sign Up</h2>
+            <form id="signup-form" class="space-y-4">
+                <div>
+                    <label for="signup-username" class="block text-sm font-medium mb-1">Username</label>
+                    <input type="text" id="signup-username" class="w-full p-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+                </div>
+                 <div>
+                    <label for="signup-email" class="block text-sm font-medium mb-1">Email</label>
+                    <input type="email" id="signup-email" class="w-full p-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+                </div>
+                <div>
+                    <label for="signup-password" class="block text-sm font-medium mb-1">Password</label>
+                    <input type="password" id="signup-password" class="w-full p-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+                </div>
+                <button type="submit" class="w-full px-6 py-3 btn-primary-gradient text-white font-semibold rounded-lg shadow-md hover:shadow-lg">Create Account</button>
+            </form>
+            <p class="text-center mt-4 text-sm">
+                Already have an account? <a href="#" id="show-login" class="text-primary font-medium">Login</a>
+            </p>
+        </div>
+    </div>
+    
+    <!-- Product Details Modal -->
+    <div id="product-details-modal" class="fixed inset-0 z-[70] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 hidden animate-fade-in">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-8 relative">
+            <button class="modal-close-btn absolute top-4 right-4 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 text-3xl">&times;</button>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <img id="modal-product-img" src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%27600%27%20height%3D%27600%27%3E%3Crect%20width%3D%27100%25%27%20height%3D%27100%25%27%20fill%3D%27%23EBF4FF%27/%3E%3Ctext%20x%3D%2750%25%27%20y%3D%2750%25%27%20dominant-baseline%3D%27middle%27%20text-anchor%3D%27middle%27%20font-family%3D%27Inter%2C%20Arial%27%20font-size%3D%2742%27%20fill%3D%27%231F2937%27%3EProduct%3C/text%3E%3C/svg%3E" alt="Product Image" class="w-full h-auto rounded-lg shadow-md">
+                </div>
+                <div class="flex flex-col space-y-4">
+                    <h2 id="modal-product-title" class="text-3xl font-bold">Product Title</h2>
+                    <span id="modal-product-category" class="text-sm font-semibold text-primary uppercase">Category</span>
+                    <p id="modal-product-description" class="text-slate-600 dark:text-slate-300">Full product description will go here.</p>
+                    <div class="flex items-baseline space-x-3">
+                        <span id="modal-product-price" class="text-4xl font-extrabold text-slate-900 dark:text-white">₹0.00</span>
+                        <span id="modal-product-discount" class="text-lg font-medium line-through text-slate-400">₹0.00</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span id="modal-product-rating" class="text-yellow-400">★★★★★</span>
+                        <span id="modal-product-rating-text" class="text-slate-500">(0.0)</span>
+                    </div>
+                    <div class="space-y-1">
+                        <p class="text-sm">Brand: <span id="modal-product-brand" class="font-medium text-slate-700 dark:text-slate-200">N/A</span></p>
+                        <p class="text-sm">Stock: <span id="modal-product-stock" class="font-medium text-green-500">In Stock</span></p>
+                    </div>
+                    <div class="pt-4">
+                        <button id="modal-save-btn" data-id="" class="w-full px-6 py-3 btn-primary-gradient text-white font-semibold rounded-lg shadow-md hover:shadow-lg">
+                            Save Item
+                        </button>
+                    </div>
+                </div>
+            </div>
+   </div>
+  </div>
+<script src="assets/js/ui.js"></script>
+<script src="assets/js/router.js"></script>
+<script src="assets/data/products.js"></script>
+<script src="assets/js/agent.js"></script>
+<script src="assets/js/agents.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>
